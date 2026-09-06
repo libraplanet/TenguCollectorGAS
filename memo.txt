@@ -1,0 +1,54 @@
+■ プロジェクトを作成
+npm init -y
+
+■ nodeのversionを設定する
+volta pin node@v22
+
+■ claps 2系をインストールする
+npm install @google/clasp@2.x
+
+■ claspにログインし権限を付与する
+npx clasp login
+
+■ スクリプトをcloneする
+https://script.google.com/u/0/home/projects/1khIBkCj_-Ibh1A7HlttabiC9pvpzuzDH3Rp_nkS5df-sGvF3bMLSRmnj/settings
+npx clasp clone "1khIBkCj_-Ibh1A7HlttabiC9pvpzuzDH3Rp_nkS5df-sGvF3bMLSRmnj"
+
+■ .clasp.jsonを修正する
+> "rootDir":"."
+絶対パスが入っているので
+
+■ .gitignore
+touch .gitignore
+echo node_modules >> ".gitignore"
+
+■ Gitへの登録
+# ワーキング コピーの初期化
+git init
+
+# gitアカウントの登録を行う
+git config --local user.name "****"
+git config --local user.email "****"
+
+# ローカルの変更を登録する
+git add .
+git commit -m "Initial commit"
+
+# branch名をmainに変更する。
+git branch -M main
+
+# リポジトリのアドレスを登録
+git remote add origin "https://github.com/libraplanet/TenguCollectorGAS.git"
+
+# リポジトリの内容を取り込み (初回結合)
+git pull --rebase origin main
+
+# push
+git push -u origin main
+
+■ ステージング前に戻す
+git restore --staged .
+
+■ 参考リンク
+・開発環境のセットアップ｜GoogleAppsScriptで作るモダンなWebアプリ開発
+https://zenn.dev/luth/books/gas-with-frontend/viewer/installation
