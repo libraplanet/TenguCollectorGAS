@@ -2,8 +2,6 @@
  * AKfycbzuAmPG8RTHi1mrnc94hqUvEjqodKwmbCgroUOP_Ps
  * https://script.google.com/macros/s/AKfycbzuAmPG8RTHi1mrnc94hqUvEjqodKwmbCgroUOP_Ps/dev 
  */
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE'; // 対象のスプレッドシートID
-// const spreadSheet = SpreadsheetApp.openById(SPREADSHEET_ID);
 const SHEET_NAME = 'PhotoList';                     // 本命のシート名
 const HEADER_ROW = [
   '#',                // [0] No.
@@ -52,7 +50,7 @@ function showSidebarRegister() {
  * メニューからサイドバーを起動
  */
 function popupRegisterRelease() {
-  const targetUrl = 'https://script.google.com/macros/s/AKfycbxTC4apbA_o3yyB3XGN9T4LtoyE5BAmH5SY7JlMXLzpX-ON1IQHnMWBAeuMzhiiUDc/exec'; 
+  const targetUrl = 'https://script.google.com/macros/s/AKfycbxEBHIBN16OfUeWyOJ8MWzxf0mTU0Dtq_rxg1ERUiVgnhJHFGelL0_QyEkCO-rTM7T7/exec';
 
   // ブラウザ側で window.open を実行させる短いHTML
   const htmlContent = `
@@ -76,7 +74,7 @@ function popupRegisterRelease() {
  * メニューからサイドバーを起動
  */
 function popupRegisterDebug() {
-  const targetUrl = 'https://script.google.com/macros/s/AKfycbzuAmPG8RTHi1mrnc94hqUvEjqodKwmbCgroUOP_Ps/dev'; 
+  const targetUrl = 'https://script.google.com/macros/s/AKfycbzuAmPG8RTHi1mrnc94hqUvEjqodKwmbCgroUOP_Ps/dev';
 
   // ブラウザ側で window.open を実行させる短いHTML
   const htmlContent = `
@@ -117,7 +115,7 @@ function doGet(e) {
  */
 function sortAllSheets(spreadSheet) {
   const allSheets = spreadSheet.getSheets();
-  
+
   const otherSheets = [];
   const mainSheets = [];
   const tempSheets = [];
@@ -136,7 +134,7 @@ function sortAllSheets(spreadSheet) {
   }
 
   // 本命シート群を PhotoList, PhotoList (1), PhotoList (2)... の順にソート
-  mainSheets.sort(function(a, b) {
+  mainSheets.sort(function (a, b) {
     const aName = a.getName();
     const bName = b.getName();
     if (aName === SHEET_NAME) {
@@ -151,7 +149,7 @@ function sortAllSheets(spreadSheet) {
   });
 
   // 一時シート群を タイムスタンプ降順（新 ➔ 旧）にソート
-  tempSheets.sort(function(a, b) {
+  tempSheets.sort(function (a, b) {
     return b.getName().localeCompare(a.getName());
   });
 
@@ -185,7 +183,7 @@ function createTempSheet(param) {
     const mm = `0${now.getMinutes()}`.slice(-2);
     const ss = `0${now.getSeconds()}`.slice(-2);
     const fff = `00${now.getMilliseconds()}`.slice(-3);
-    
+
     // サーバー側のタイムスタンプで生成 (#YYYYMMDDHHmmss.fff)
     const newTempSheetName = `#${YYYY}${MM}${DD}${hh}${mm}${ss}.${fff}`;
 
@@ -199,7 +197,7 @@ function createTempSheet(param) {
       }
     }
 
-    existingTempSheets.sort(function(a, b) {
+    existingTempSheets.sort(function (a, b) {
       return b.getName().localeCompare(a.getName());
     });
 
@@ -223,17 +221,17 @@ function createTempSheet(param) {
     // 1行目: 処理開始日時
     const b1Cell = newSheet.getRange(1, 2);
     b1Cell.setValue('処理開始日時')
-          .setFontWeight('bold')
-          .setBackground(primaryBlue)
-          .setFontColor(whiteText);
+      .setFontWeight('bold')
+      .setBackground(primaryBlue)
+      .setFontColor(whiteText);
     newSheet.getRange(1, 3).setValue(serverStartTimeStr).setNumberFormat(DATE_FORMAT);
 
     // 2行目: 処理終了日時 (初期化時は空欄)
     const b2Cell = newSheet.getRange(2, 2);
     b2Cell.setValue('処理終了日時')
-          .setFontWeight('bold')
-          .setBackground(primaryBlue)
-          .setFontColor(whiteText);
+      .setFontWeight('bold')
+      .setBackground(primaryBlue)
+      .setFontColor(whiteText);
     newSheet.getRange(2, 3).setValue('').setNumberFormat(DATE_FORMAT);
 
     // 3行目: 空白行
@@ -241,9 +239,9 @@ function createTempSheet(param) {
     // 4行目: データ ヘッダー (A4:F4)
     const headerRange = newSheet.getRange(4, 1, 1, HEADER_ROW.length);
     headerRange.setValues([HEADER_ROW])
-               .setFontWeight('bold')
-               .setBackground(primaryBlue)
-               .setFontColor(whiteText);
+      .setFontWeight('bold')
+      .setBackground(primaryBlue)
+      .setFontColor(whiteText);
 
     // ④ オートフィルター (A4:F4)
     headerRange.createFilter();
@@ -281,10 +279,10 @@ function writeToTempSheet(param) {
     const spreadSheet = SpreadsheetApp.getActiveSpreadsheet();
     const metaData = param.metaData || {};
     const tempSheetName = metaData.tempSheetName;
-    const rows = (function() {
+    const rows = (function () {
       if (param.rows) {
         let ret = [];
-        param.rows.forEach(function(row, index) {
+        param.rows.forEach(function (row, index) {
           // ファイル名
           const fileName = row.filePath?.match(/([^\\/]*)$/)[0];
           // 拡張子
@@ -292,9 +290,9 @@ function writeToTempSheet(param) {
           const fileType = fileName?.match(/\.(\S*)$/)[1].toUpperCase();
           const exifDateOriginal = row.exifDateOriginal;
           // 代替日時 ファイル名などから類推
-          const dateTimeAlt = (function (){
+          const dateTimeAlt = (function () {
             const g = fileName?.match(/([0-9]{4})[\s-_]*([0-9]{2})[\s-_]*([0-9]{2})[\s-_]*([0-9]{2})[\s-_]*([0-9]{2})[\s-_]*([0-9]{2})(Z?)/i)?.slice(1);
-            if(g) {
+            if (g) {
               const d = new Date(`${g[0]}-${g[1]}-${g[2]} ${g[3]}:${g[4]}:${g[5]} ${g[6]}`);
               // const YYYY = d.getFullYear();
               // const MM = `0${d.getMonth() + 1}`.slice(-2);
@@ -344,8 +342,8 @@ function writeToTempSheet(param) {
       } else {
         const lastRow = sheet.getLastRow();
         // 5行目より前（ヘッダー部分）なら5行目から書き込みを開始、それ以降は末尾に追記
-        const startRow = (function() {
-          if(lastRow < 4) {
+        const startRow = (function () {
+          if (lastRow < 4) {
             return 5;
           } else {
             return lastRow + 1;
@@ -398,9 +396,9 @@ function finalizeSheet(param) {
       tempSheet.getRange(2, 3).setValue(endTimeStr);
 
       // --- 幅調整の適用 ---
-      for(let i = 0; i < HEADER_ROW.length; i++) {
+      for (let i = 0; i < HEADER_ROW.length; i++) {
         const j = i + 1;
-        if(i == 1) {
+        if (i == 1) {
           // [1] B列: 全角10文字程度の幅 (約200ピクセル)
           tempSheet.setColumnWidth(j, 200);
         } else {

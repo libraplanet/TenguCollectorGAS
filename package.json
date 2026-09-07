@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "push": "npx clasp push",
+    "open": "npx clasp open",
+    "deployments": "npx clasp deployments",
+    "deploy": "node --env-file=deploy.env deploy.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

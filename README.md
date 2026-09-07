@@ -24,7 +24,7 @@
 - node.js v22.x https://nodejs.org/
   - Google clasp実行基盤
 - Google clasp v2.x https://github.com/google/CLASP
-  - GASのプロジェクト管理 (今後)
+  - GASのプロジェクト管理
 
 ## 特徴
 - Spreadsheetに紐づくApps Scriptを仕様。
@@ -55,4 +55,4 @@
   - 著作権表示: Copyright (c) Mattias Buelens
   - ライセンス: MIT License
   - URL: https://github.com/mattiasbuelens/exifreader
-  
+

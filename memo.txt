@@ -1,3 +1,7 @@
+■ スクリプトでの更新を有効にする
+https://script.google.com/home/usersettings
+
+
 ■ プロジェクトを作成
 npm init -y
 
@@ -48,6 +52,13 @@ git push -u origin main
 
 ■ ステージング前に戻す
 git restore --staged .
+
+■ clasp
+# GASにpush (更新)
+npx clasp push
+
+# プロジェクトを開く
+npx clasp open
 
 ■ 参考リンク
 ・開発環境のセットアップ｜GoogleAppsScriptで作るモダンなWebアプリ開発
