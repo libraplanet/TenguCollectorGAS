@@ -29,8 +29,11 @@ function onOpen() {
     .addItem('ZIPから一括登録 (popup)', 'popupRegisterRelease')
     .addSeparator() // 区切り線
     .addItem('ZIPから一括登録 (popup + debug)', 'popupRegisterDebug')
+    .addSeparator() // 区切り線
+    .addItem('MD5ハッシュ文字列の生成', 'showMd5HashDialog')
     .addToUi();
 }
+
 
 /**
  * メニューからサイドバーを起動
@@ -454,3 +457,166 @@ function finalizeSheet(param) {
     lock.releaseLock();
   }
 }
+
+/**
+ * ④ 全件一括登録処理 (一時シート作成 -> データ一括書き込み -> ファイナライズ)
+ * コンソールアプリ等からの全件一括POST登録向け
+ * @param param {Object} { password: string, metaData: { startTime, endTime }, rows: [...] }
+ * @return {Object} { status: 'success' | 'error', message?: string, count?: number }
+ */
+function registerAll(param) {
+  Logger.log('[registerAll] start.');
+  Logger.log(param);
+
+  const inputParam = param || {};
+  const password = inputParam.password || '';
+  const metaData = inputParam.metaData || {};
+  const rows = inputParam.rows || [];
+
+  // 1. 一時シートの作成
+  const createResult = createTempSheet({ metaData: metaData });
+
+  if (createResult.status === 'success') {
+    const tempSheetName = createResult.tempSheetName;
+
+    // 2. データが有る場合は一括書き込み
+    const writeResult = (function () {
+      if (rows.length > 0) {
+        return writeToTempSheet({
+          metaData: { tempSheetName: tempSheetName },
+          rows: rows
+        });
+      } else {
+        return { status: 'success', count: 0 };
+      }
+    })();
+
+    if (writeResult.status === 'success') {
+      // 処理終了日時の作成 (未指定時のフォールバック)
+      const endTimeStr = metaData.endTime || (function () {
+        const now = new Date();
+        const YYYY = now.getFullYear();
+        const MM = `0${now.getMonth() + 1}`.slice(-2);
+        const DD = `0${now.getDate()}`.slice(-2);
+        const hh = `0${now.getHours()}`.slice(-2);
+        const mm = `0${now.getMinutes()}`.slice(-2);
+        const ss = `0${now.getSeconds()}`.slice(-2);
+        return `${YYYY}/${MM}/${DD} ${hh}:${mm}:${ss}`;
+      })();
+
+      // 3. ファイナライズ処理
+      const finalizeResult = finalizeSheet({
+        metaData: {
+          tempSheetName: tempSheetName,
+          endTime: endTimeStr
+        }
+      });
+
+      if (finalizeResult.status === 'success') {
+        return {
+          status: 'success',
+          count: rows.length,
+          tempSheetName: tempSheetName
+        };
+      } else {
+        return finalizeResult;
+      }
+    } else {
+      return writeResult;
+    }
+  } else {
+    return createResult;
+  }
+}
+
+/**
+ * ⑤ ウェブアプリURLへのPOSTアクセス時、全件一括登録を実行
+ * @param e {Object} リクエストオブジェクト
+ * @return {GoogleAppsScript.Content.TextOutput} JSONレスポンス
+ */
+function doPost(e) {
+  Logger.log('[doPost] start.');
+
+  const result = (function () {
+    try {
+      const param = (function () {
+        if (e) {
+          if (e.postData) {
+            if (e.postData.contents) {
+              return JSON.parse(e.postData.contents);
+            }
+          }
+          if (e.parameter) {
+            return e.parameter;
+          }
+        }
+        return {};
+      })();
+
+      return registerAll(param);
+    } catch (err) {
+      Logger.log('[doPost] error: ' + err.toString());
+      return { status: 'error', message: 'POSTリクエストの処理に失敗しました: ' + err.toString() };
+    }
+  })();
+
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * 指定された文字列からMD5ハッシュ値 (16進数小文字) を計算して取得
+ * @param text {string} ハッシュ化対象の文字列
+ * @return {string} MD5ハッシュ文字列
+ */
+function getMd5Hash(text) {
+  const inputStr = text || '';
+  const result = (function () {
+    if (inputStr === '') {
+      return '';
+    } else {
+      const rawDigest = Utilities.computeDigest(
+        Utilities.DigestAlgorithm.MD5,
+        inputStr,
+        Utilities.Charset.UTF_8
+      );
+      return rawDigest.map(function (byteVal) {
+        const positiveVal = (byteVal < 0) ? (byteVal + 256) : byteVal;
+        const hexStr = positiveVal.toString(16);
+        return (hexStr.length === 1) ? `0${hexStr}` : hexStr;
+      }).join('');
+    }
+  })();
+  return result;
+}
+
+/**
+ * MD5ハッシュ文字列の生成ダイアログを表示
+ */
+function showMd5HashDialog() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.prompt(
+    '🔑 MD5ハッシュ生成',
+    'MD5ハッシュ化したい文字列を入力してください:',
+    ui.ButtonSet.OK_CANCEL
+  );
+
+  const selectedButton = response.getSelectedButton();
+  const inputText = response.getResponseText() || '';
+
+  if (selectedButton === ui.Button.OK) {
+    if (inputText !== '') {
+      const hashValue = getMd5Hash(inputText);
+      ui.alert(
+        'MD5ハッシュ計算結果',
+        `【入力文字列】\n${inputText}\n\n【MD5ハッシュ値】\n${hashValue}`,
+        ui.ButtonSet.OK
+      );
+    } else {
+      ui.alert('入力エラー', '文字列が入力されていません。', ui.ButtonSet.OK);
+    }
+  }
+}
+
+
+
