@@ -18,9 +18,14 @@ npx clasp login
 https://script.google.com/u/0/home/projects/1khIBkCj_-Ibh1A7HlttabiC9pvpzuzDH3Rp_nkS5df-sGvF3bMLSRmnj/settings
 npx clasp clone "1khIBkCj_-Ibh1A7HlttabiC9pvpzuzDH3Rp_nkS5df-sGvF3bMLSRmnj"
 
+■ srcフォルダーを作成、ソースを移動する。
+・appsscript.json
+・code.js
+・index.html
+
 ■ .clasp.jsonを修正する
-> "rootDir":"."
-絶対パスが入っているので
+絶対パスが入っているので、相対パスでsrcにする
+> "rootDir":"src"
 
 ■ .gitignore
 touch .gitignore
